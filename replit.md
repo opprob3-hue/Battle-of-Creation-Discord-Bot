@@ -1,6 +1,7 @@
-# [Project name]
+# Battle of Creation Discord Bot
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An isolated Python `discord.py` tournament bot with two slash commands for
+server-specific, avatar-based Battle of Creation brackets.
 
 ## Run & Operate
 
@@ -10,6 +11,8 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
+- `python -m battle_bot.bot` — run the Battle of Creation Discord bot
+- Required secret: `DISCORD_TOKEN`
 
 ## Stack
 
@@ -30,7 +33,9 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+The bot lets Discord members submit any creation, enter a fair 2–8 player
+single-elimination bracket, and see generated versus cards using their Discord
+avatars. Active state is isolated per server and persisted across restarts.
 
 ## User preferences
 
@@ -38,7 +43,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The bot requires the Server Members Intent in Discord Developer Portal.
+- State is stored in `data/battle_state.json`; it is intentionally separate
+  from the existing TypeScript API and canvas artifacts.
 
 ## Pointers
 

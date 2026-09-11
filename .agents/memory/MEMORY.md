@@ -1,0 +1,1 @@
+- [Discord command naming](discord-command-naming.md) — Discord application commands must use lowercase names; normalize uppercase requests before registration.
