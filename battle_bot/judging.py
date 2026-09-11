@@ -8,7 +8,8 @@ import os
 import re
 from dataclasses import dataclass
 
-from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 
 from .models import Player
 from .settings import AI_JUDGE_TIMEOUT_SECONDS
@@ -146,7 +147,7 @@ async def judge_match_with_ai(
 ) -> Judgement:
     """Use AI for fresh matchup commentary, with a deterministic local fallback."""
     local_judgement = judge_match(player_one, player_two, round_number)
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         return local_judgement
 
@@ -171,27 +172,24 @@ Rules:
 
     try:
         async with _AI_SEMAPHORE:
-            client = AsyncOpenAI(
+            client = genai.Client(
                 api_key=api_key,
-                timeout=AI_JUDGE_TIMEOUT_SECONDS,
-                max_retries=0,
+                http_options=types.HttpOptions(
+                    timeout=AI_JUDGE_TIMEOUT_SECONDS * 1000,
+                ),
             )
-            response = await client.chat.completions.create(
-                model="gpt-5-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You create concise, matchup-specific Discord battle "
-                            "commentary. Always follow the requested JSON format."
-                        ),
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                max_completion_tokens=260,
-                response_format={"type": "json_object"},
-            )
-        content = response.choices[0].message.content or ""
+            try:
+                response = await client.aio.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        max_output_tokens=8192,
+                    ),
+                )
+            finally:
+                await client.aio.aclose()
+        content = response.text or ""
         data = json.loads(content)
         winner_choice = str(data.get("winner", "")).lower().strip()
         raw_reason = str(data.get("reason", "")).strip()
@@ -205,6 +203,6 @@ Rules:
         if len(reason) < 30:
             return local_judgement
         return Judgement(winner_id=winner.user_id, loser_id=loser.user_id, reason=reason)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError, Exception) as error:
+    except Exception as error:
         LOGGER.warning("AI judge unavailable; using local judge: %s", type(error).__name__)
         return local_judgement
