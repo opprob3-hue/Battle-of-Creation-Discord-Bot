@@ -1,1 +1,2 @@
 - [Discord command naming](discord-command-naming.md) — Discord application commands must use lowercase names; normalize uppercase requests before registration.
+- [AI judge fallback](ai-judge-fallback.md) — Managed AI setup may require an upgrade; keep direct-key AI optional and preserve a local judge.

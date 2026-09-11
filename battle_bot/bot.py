@@ -10,7 +10,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from .image_cards import create_battle_card, create_battle_banner
-from .judging import judge_match
+from .judging import judge_match_with_ai
 from .models import BattleState, Match, Player
 from .settings import (
     BOT_TOKEN_ENV,
@@ -372,7 +372,11 @@ class BattleBot(commands.Bot):
             loser = first if first.eliminated else second
             await self._finish_match(state, battle_match, winner, loser, "left the server")
             return
-        judgement = judge_match(first, second)
+        judgement = await judge_match_with_ai(
+            first,
+            second,
+            battle_match.round_number,
+        )
         winner = state.players[judgement.winner_id]
         loser = state.players[judgement.loser_id]
         await self._finish_match(state, battle_match, winner, loser, judgement.reason)
