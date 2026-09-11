@@ -462,10 +462,14 @@ def build_main_embed(state: BattleState) -> discord.Embed:
     embed.add_field(name="Status", value="Accepting players" if state.status == "joining" else "Battle locked", inline=True)
     if state.players:
         roster = "\n".join(
-            f"• {safe_text(player.display_name)} — {safe_text(player.submission, 80)}"
+            f"• {safe_text(player.display_name)}"
             for player in state.players.values()
         )
-        embed.add_field(name="Current roster", value=roster[:1024], inline=False)
+        embed.add_field(
+            name="Current roster",
+            value=f"{roster[:900]}\n\n_Submissions are revealed when each fight begins._",
+            inline=False,
+        )
     else:
         embed.add_field(name="Current roster", value="No submissions yet. Be the first to enter.", inline=False)
     if state.main_image_url:
